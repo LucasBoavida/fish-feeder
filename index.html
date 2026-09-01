@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fish Feeder Web Dashboard</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- MQTT.js Library -->
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <!-- Chart.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .card {
+            background-color: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 1rem;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8">
+    <div class="max-w-6xl mx-auto space-y-6">
+        
+        <!-- Header -->
+        <header class="card p-6 flex flex-col md:flex-row justify-between items-center shadow-lg">
+            <div class="flex items-center space-x-4 mb-4 md:mb-0">
+                <div class="bg-blue-600 p-3 rounded-full text-white text-2xl">
+                    <i class="fa-solid => fa-fish"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold">Automatic Fish Feeder</h1>
+                    <p class="text-slate-400 text-sm">Dashboard Kontrolu no Monitorizasaun Real-time (MQTT)</p>
+                </div>
+            </div>
+            <div id="statusBadge" class="flex items-center space-x-2 bg-red-500/20 text-red-400 px-4 py-2 rounded-full border border-red-500/30 font-medium text-sm">
+                <span class="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse"> Deskonetadu</span>
+            </div>
+        </header>
+
+        <!-- MQTT Credentials Form (Collapsible/Config) -->
+        <div class="card p-6 shadow-lg">
+            <h2 class="text-lg font-semibold text-slate-200 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-plug text-blue-400"></i> Konfigurasaun HiveMQ Cloud (MQTTS/WSS)
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Broker Host (WSS)</label>
+                    <input type="text" id="mqttHost" value="abc12345xyz.s1.eu.hivemq.cloud" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Port (WSS)</label>
+                    <input type="number" id="mqttPort" value="8884" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Username</label>
+                    <input type="text" id="mqttUser" placeholder="fishfeeder_user" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Password</label>
+                    <input type="password" id="mqttPass" placeholder="••••••••" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
+                </div>
+            </div>
+            <button onclick="connectMQTT()" class="mt-4 w-full md:w-auto bg-blue-600 hover:bg-blue-500 text-white font-medium px-6 py-2 rounded-lg transition duration-200 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-wifi"></i> Ligar ba Broker
+            </button>
+        </div>
+
+        <!-- Dashboard Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+            <!-- Sensor Temp -->
+            <div class="card p-6 flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center text-slate-400 mb-2">
+                        <span class="text-sm font-medium">Temperatura Bé</span>
+                        <i class="fa-solid fa-temperature-half text-amber-500 text-xl"></i>
+                    </div>
+                    <div class="text-4xl font-extrabold text-white mt-2" id="tempVal">-- °C</div>
+                </div>
+                <p class="text-xs text-slate-500 mt-4">Status: <span id="tempStatus" class="text-slate-400">Hein dadus...</span></p>
+            </div>
+
+            <!-- Sensor Level Aihan -->
+            <div class="card p-6 flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center text-slate-400 mb-2">
+                        <span class="text-sm font-medium">Nível Aihan Ikan</span>
+                        <i class="fa-solid fa-wheat-awn text-emerald-500 text-xl"></i>
+                    </div>
+                    <div class="text-4xl font-extrabold text-white mt-2" id="foodVal">-- %</div>
+                </div>
+                <div class="w-full bg-slate-700 h-2 rounded-full overflow-hidden mt-4">
+                    <div id="foodBar" class="bg-emerald-500 h-full w-0 transition-all duration-500"></div>
+                </div>
+            </div>
+
+            <!-- Kontrolu Remote Feed -->
+            <div class="card p-6 flex flex-col justify-between bg-gradient-to-br from-slate-800 to-slate-900">
+                <div>
+                    <span class="text-sm font-medium text-slate-400">Kontrolu Diretu</span>
+                    <h3 class="text-xl font-bold text-white mt-1">Fó Han Agora</h3>
+                    <p class="text-xs text-slate-400 mt-1">Haruka sinal instantaneous ba ESP32 atu treke motor.</p>
+                </div>
+                <button onclick="publishFeed()" id="feedBtn" class="mt-6 w-full bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold py-3 rounded-xl shadow-lg transition duration-200 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-bowl-food text-lg"></i> FÓ HAN (FEED)
+                </button>
+            </div>
+
+        </div>
+
+        <!-- Schedule & Chart Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Schedule Form -->
+            <div class="card p-6 space-y-4">
+                <h3 class="text-lg font-bold text-slate-200 flex items-center gap-2">
+                    <i class="fa-regular fa-clock text-blue-400"></i> Atur Oráriu Fó Han
+                </h3>
+                <p class="text-xs text-slate-400">Oráriu ne'e sei haruka ba ESP32 no rai iha nia memória interna.</p>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Dadaun 1 (Oras Mahain)</label>
+                        <input type="time" id="sched1" value="07:00" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Dadaun 2 (Oras Lokraik)</label>
+                        <input type="time" id="sched2" value="17:00" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
+                    </div>
+                </div>
+                <button onclick="publishSchedule()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2 rounded-lg transition duration-200 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-floppy-disk"></i> Rai Oráriu ba ESP32
+                </button>
+            </div>
+
+            <!-- Gráfico Realtime -->
+            <div class="card p-6 lg:col-span-2">
+                <h3 class="text-lg font-bold text-slate-200 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-chart-line text-blue-400"></i> Históriku Temperatura Bé (Real-time Chart)
+                </h3>
+                <div class="h-64">
+                    <canvas id="tempChart"></canvas>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Logs Section -->
+        <div class="card p-6">
+            <h3 class="text-sm font-bold text-slate-400 mb-2 flex items-center gap-2">
+                <i class="fa-solid fa-terminal"></i> Console Logs
+            </h3>
+            <div id="logBox" class="bg-slate-950 p-4 rounded-lg h-32 overflow-y-auto text-xs font-mono text-emerald-400 space-y-1">
+                <div>[SYSTEM] Dashboard prontu. Hatama HiveMQ Credentials no klik 'Ligar ba Broker'.</div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- MQTT JavaScript Logic -->
+    <script>
+        let client = null;
+
+        // Chart Setup
+        const ctx = document.getElementById('tempChart').getContext('2d');
+        const tempChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Temperatura (°C)',
+                    data: [],
+                    borderColor: '#f59e0b',
+                    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } },
+                    y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } }
+                },
+                plugins: {
+                    legend: { labels: { color: '#f8fafc' } }
+                }
+            }
+        });
+
+        function log(msg) {
+            const logBox = document.getElementById('logBox');
+            const time = new Date().toLocaleTimeString();
+            logBox.innerHTML += `<div>[${time}] ${msg}</div>`;
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        function connectMQTT() {
+            const host = document.getElementById('mqttHost').value.trim();
+            const port = document.getElementById('mqttPort').value.trim();
+            const user = document.getElementById('mqttUser').value.trim();
+            const pass = document.getElementById('mqttPass').value.trim();
+
+            if(!host || !user || !pass) {
+                alert('Favór preenxe Host, Username, no Password HiveMQ nian!');
+                return;
+            }
+
+            const connectUrl = `wss://${host}:${port}/mqtt`;
+            log(`Ligar daudaun ba ${connectUrl}...`);
+
+            client = mqtt.connect(connectUrl, {
+                clientId: 'WebDashboard_' + Math.random().toString(16).substr(2, 8),
+                username: user,
+                password: pass,
+                clean: true,
+                reconnectPeriod: 2000
+            });
+
+            client.on('connect', () => {
+                log('KONEKTA SUSESU BA HIVEMQ BROKER!');
+                document.getElementById('statusBadge').className = "flex items-center space-x-2 bg-emerald-500/20 text-emerald-400 px-4 py-2 rounded-full border border-emerald-500/30 font-medium text-sm";
+                document.getElementById('statusBadge').innerHTML = '<span class="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-ping"></span> Konetadu';
+
+                // Subscribe ba Topics
+                client.subscribe('fishfeeder/status/sensors');
+                client.subscribe('fishfeeder/status/online');
+                log('Subscritu ba topik: fishfeeder/status/#');
+            });
+
+            client.on('message', (topic, message) => {
+                const payload = message.toString();
+                log(`Simu [${topic}]: ${payload}`);
+
+                if(topic === 'fishfeeder/status/sensors') {
+                    try {
+                        const data = JSON.parse(payload);
+                        if(data.temp !== undefined) {
+                            document.getElementById('tempVal').innerText = data.temp + ' °C';
+                            
+                            // Update Chart
+                            const now = new Date().toLocaleTimeString();
+                            if(tempChart.data.labels.length > 10) {
+                                tempChart.data.labels.shift();
+                                tempChart.data.datasets[0].data.shift();
+                            }
+                            tempChart.data.labels.push(now);
+                            tempChart.data.datasets[0].data.push(data.temp);
+                            tempChart.update();
+                        }
+                        if(data.food !== undefined) {
+                            document.getElementById('foodVal').innerText = data.food + ' %';
+                            document.getElementById('foodBar').style.width = data.food + '%';
+                        }
+                    } catch(e) {
+                        console.error('JSON Error', e);
+                    }
+                }
+            });
+
+            client.on('error', (err) => {
+                log('ERRO: ' + err.message);
+            });
+
+            client.on('close', () => {
+                document.getElementById('statusBadge').className = "flex items-center space-x-2 bg-red-500/20 text-red-400 px-4 py-2 rounded-full border border-red-500/30 font-medium text-sm";
+                document.getElementById('statusBadge').innerHTML = '<span class="w-2.5 h-2.5 bg-red-500 rounded-full"></span> Deskonetadu';
+            });
+        }
+
+        function publishFeed() {
+            if(!client || !client.connected) {
+                alert('Ligar ba MQTT Broker konsoante lai!');
+                return;
+            }
+            client.publish('fishfeeder/cmd/feed', 'FEED');
+            log('Haruka komandu "FEED" ba fishfeeder/cmd/feed');
+        }
+
+        function publishSchedule() {
+            if(!client || !client.connected) {
+                alert('Ligar ba MQTT Broker konsoante lai!');
+                return;
+            }
+            const s1 = document.getElementById('sched1').value;
+            const s2 = document.getElementById('sched2').value;
+            const payload = JSON.stringify({ feed1: s1, feed2: s2 });
+
+            client.publish('fishfeeder/cmd/schedule', payload, { retain: true });
+            log(`Haruka Oráriu: ${payload} ba fishfeeder/cmd/schedule`);
+        }
+    </script>
+</body>
+</html>
