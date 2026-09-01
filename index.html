@@ -12,6 +12,11 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase App no Realtime Database SDK (CDN Version) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
     <style>
         body {
             background-color: #0f172a;
@@ -32,19 +37,19 @@
         <header class="card p-6 flex flex-col md:flex-row justify-between items-center shadow-lg">
             <div class="flex items-center space-x-4 mb-4 md:mb-0">
                 <div class="bg-blue-600 p-3 rounded-full text-white text-2xl">
-                    <i class="fa-solid => fa-fish"></i>
+                    <i class="fa-solid fa-fish"></i>
                 </div>
                 <div>
                     <h1 class="text-2xl font-bold">Automatic Fish Feeder</h1>
-                    <p class="text-slate-400 text-sm">Dashboard Kontrolu no Monitorizasaun Real-time (MQTT)</p>
+                    <p class="text-slate-400 text-sm">Dashboard Kontrolu no Monitorizasaun Real-time (MQTT + Firebase)</p>
                 </div>
             </div>
             <div id="statusBadge" class="flex items-center space-x-2 bg-red-500/20 text-red-400 px-4 py-2 rounded-full border border-red-500/30 font-medium text-sm">
-                <span class="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse"> Deskonetadu</span>
+                <span class="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse"></span> Deskonetadu
             </div>
         </header>
 
-        <!-- MQTT Credentials Form (Collapsible/Config) -->
+        <!-- MQTT Credentials Form -->
         <div class="card p-6 shadow-lg">
             <h2 class="text-lg font-semibold text-slate-200 mb-4 flex items-center gap-2">
                 <i class="fa-solid fa-plug text-blue-400"></i> Konfigurasaun HiveMQ Cloud (MQTTS/WSS)
@@ -163,11 +168,34 @@
 
     </div>
 
-    <!-- MQTT JavaScript Logic -->
+    <!-- JavaScript Application Logic -->
     <script>
-        let client = null;
+        // --- 1. Firebase Initialization ---
+        const firebaseConfig = {
+            apiKey: "AIzaSySyFktnxXLR0P3EnBMf7p1DEwdShB8",
+            authDomain: "fish-feeder-db.firebaseapp.com",
+            databaseURL: "https://fish-feeder-db-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "fish-feeder-db",
+            storageBucket: "fish-feeder-db.firebasestorage.app",
+            messagingSenderId: "498255146529",
+            appId: "1:498255146529:web:cabcdaf269e970c941bd60",
+            measurementId: "G-2YQVEHL7HK"
+        };
 
-        // Chart Setup
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        function raiDadusBaFirebase(temp, food) {
+            const timestamp = new Date().toISOString();
+            database.ref('historiu_sensor').push({
+                temperatura: temp,
+                nivel_aihan: food,
+                tempo: timestamp
+            });
+        }
+
+        // --- 2. Chart setup ---
+        let client = null;
         const ctx = document.getElementById('tempChart').getContext('2d');
         const tempChart = new Chart(ctx, {
             type: 'line',
@@ -202,6 +230,7 @@
             logBox.scrollTop = logBox.scrollHeight;
         }
 
+        // --- 3. MQTT Logic ---
         function connectMQTT() {
             const host = document.getElementById('mqttHost').value.trim();
             const port = document.getElementById('mqttPort').value.trim();
@@ -229,7 +258,6 @@
                 document.getElementById('statusBadge').className = "flex items-center space-x-2 bg-emerald-500/20 text-emerald-400 px-4 py-2 rounded-full border border-emerald-500/30 font-medium text-sm";
                 document.getElementById('statusBadge').innerHTML = '<span class="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-ping"></span> Konetadu';
 
-                // Subscribe ba Topics
                 client.subscribe('fishfeeder/status/sensors');
                 client.subscribe('fishfeeder/status/online');
                 log('Subscritu ba topik: fishfeeder/status/#');
@@ -242,9 +270,23 @@
                 if(topic === 'fishfeeder/status/sensors') {
                     try {
                         const data = JSON.parse(payload);
+                        
+                        // Update Temp
                         if(data.temp !== undefined) {
                             document.getElementById('tempVal').innerText = data.temp + ' °C';
                             
+                            // Status Temp
+                            if(data.temp > 30) {
+                                document.getElementById('tempStatus').innerText = "Manas Reitu!";
+                                document.getElementById('tempStatus').className = "text-red-400 font-bold";
+                            } else if(data.temp < 22) {
+                                document.getElementById('tempStatus').innerText = "Malarin Reitu!";
+                                document.getElementById('tempStatus').className = "text-blue-400 font-bold";
+                            } else {
+                                document.getElementById('tempStatus').innerText = "Normál";
+                                document.getElementById('tempStatus').className = "text-emerald-400 font-bold";
+                            }
+
                             // Update Chart
                             const now = new Date().toLocaleTimeString();
                             if(tempChart.data.labels.length > 10) {
@@ -255,10 +297,18 @@
                             tempChart.data.datasets[0].data.push(data.temp);
                             tempChart.update();
                         }
+
+                        // Update Food Level
                         if(data.food !== undefined) {
                             document.getElementById('foodVal').innerText = data.food + ' %';
                             document.getElementById('foodBar').style.width = data.food + '%';
                         }
+
+                        // Save to Firebase Database
+                        if(data.temp !== undefined && data.food !== undefined) {
+                            raiDadusBaFirebase(data.temp, data.food);
+                        }
+
                     } catch(e) {
                         console.error('JSON Error', e);
                     }
