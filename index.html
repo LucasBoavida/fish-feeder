@@ -23,14 +23,13 @@
 </head>
 <body class="bg-slate-100 text-slate-800 antialiased min-h-screen">
 
-    <!-- Overlay Screen Mobile -->
-    <div id="sidebarOverlay" class="fixed inset-0 bg-slate-900/50 z-20 hidden"></div>
+    <!-- Mobile Overlay Screen -->
+    <div id="sidebarOverlay" class="fixed inset-0 bg-slate-900/50 z-30 hidden transition-opacity"></div>
 
-    <!-- Main Flex Container -->
-    <div class="flex min-h-screen w-full">
+    <div class="flex min-h-screen w-full relative">
         
         <!-- Sidebar Component -->
-        <aside id="sidebar" class="w-64 bg-[#1c2434] text-slate-400 p-4 flex flex-col justify-between shrink-0 hidden md:flex transition-all duration-200">
+        <aside id="sidebar" class="w-64 bg-[#1c2434] text-slate-400 p-4 flex flex-col justify-between shrink-0 fixed md:static inset-y-0 left-0 z-40 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
             <div>
                 <!-- Brand Logo -->
                 <div class="flex items-center justify-between px-3 py-4 border-b border-slate-700/50 mb-6">
@@ -38,8 +37,8 @@
                         <div class="bg-blue-600 text-white p-2 rounded-lg text-xl"><i class="fa-solid fa-fish"></i></div>
                         <span class="text-white font-bold text-lg tracking-wide">FishAdmin</span>
                     </div>
-                    <button id="closeSidebarMobile" class="md:hidden text-slate-400 hover:text-white p-1">
-                        <i class="fa-solid fa-xmark text-lg"></i>
+                    <button id="closeSidebarMobile" class="md:hidden text-slate-400 hover:text-white p-2">
+                        <i class="fa-solid fa-xmark text-xl"></i>
                     </button>
                 </div>
                 
@@ -68,9 +67,10 @@
         <div class="flex-1 flex flex-col min-w-0 min-h-screen">
             
             <!-- Header -->
-            <header class="bg-white border-b border-slate-200 px-4 sm:px-6 py-3.5 flex justify-between items-center shadow-sm sticky top-0 z-10 w-full">
+            <header class="bg-white border-b border-slate-200 px-4 sm:px-6 py-3.5 flex justify-between items-center shadow-sm sticky top-0 z-20 w-full">
                 <div class="flex items-center gap-3">
-                    <button id="toggleSidebar" type="button" class="p-2.5 rounded-xl hover:bg-slate-100 text-slate-700 cursor-pointer active:scale-95 transition border border-slate-200">
+                    <!-- Toggle Icon Button -->
+                    <button id="toggleSidebar" type="button" class="p-2.5 rounded-xl hover:bg-slate-100 text-slate-700 cursor-pointer active:scale-95 transition border border-slate-200 flex items-center justify-center">
                         <i class="fa-solid fa-bars text-lg pointer-events-none"></i>
                     </button>
                     <h1 class="text-base sm:text-xl font-bold text-slate-800 truncate">IoT Dashboard</h1>
@@ -117,7 +117,7 @@
                 </div>
             </header>
 
-            <!-- Dashboard Content Container -->
+            <!-- Dashboard Content -->
             <main class="flex-1 p-4 sm:p-6 space-y-6 overflow-x-hidden">
 
                 <!-- Stat Cards Row 1 -->
