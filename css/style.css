@@ -1,1 +1,42 @@
+/* Custom CSS styling ba Fish Feeder Dashboard */
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+body {
+    background-color: #f1f5f9;
+    color: #1e293b;
+    font-family: 'Inter', sans-serif;
+}
+
+.sidebar {
+    background-color: #1c2434;
+}
+
+/* Custom Scrollbar ba Tabela no Page */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Transisaun Smooth ba Card no Buttons */
+.card-hover {
+    transition: all 0.2s ease-in-out;
+}
+
+.card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
