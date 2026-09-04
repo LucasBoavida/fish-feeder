@@ -4,7 +4,7 @@ import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/fi
 
 // Configurasaun loloos husi Firebase Console
 const firebaseConfig = {
-    apiKey: "AIzaSySySyFktnxXlR0P3EnBMf7p1DEwdSHb8",
+    apiKey: "AIzaSyAypSFktnxRFXlR0P3EnBMf7p1DEwdSHb8",
     authDomain: "fish-feeder-db.firebaseapp.com",
     databaseURL: "https://fish-feeder-db-default-rtdb.asia-southeast1.firebasedatabase.app",
     projectId: "fish-feeder-db",
