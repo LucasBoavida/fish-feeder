@@ -23,7 +23,7 @@
 </head>
 <body class="bg-slate-100 text-slate-800 antialiased min-h-screen">
 
-    <!-- Mobile Overlay Screen (Hatudu de'it iha tela ki'ik) -->
+    <!-- Mobile Overlay Screen (Apenas em Mobile) -->
     <div id="sidebarOverlay" class="fixed inset-0 bg-slate-900/50 z-30 hidden md:!hidden transition-opacity"></div>
 
     <div class="flex min-h-screen w-full relative">
@@ -77,16 +77,17 @@
                 </div>
 
                 <div class="flex items-center gap-2 sm:gap-4">
-                    <div id="statusBadge" class="flex items-center gap-1.5 sm:gap-2 bg-red-100 text-red-600 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-semibold">
-                        <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
-                        <span class="hidden sm:inline">Deskonetadu</span>
+                    <!-- Dynamic MQTT Status Badge -->
+                    <div id="statusBadge" class="flex items-center gap-1.5 sm:gap-2 bg-red-100 text-red-600 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-semibold transition-all">
+                        <span id="statusDot" class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                        <span id="statusText">Deskonetadu</span>
                     </div>
 
-                    <!-- Notifikasaun Icon -->
+                    <!-- Notifikasaun Dropdown Toggle -->
                     <div class="relative">
                         <button id="btnNotification" type="button" class="w-9 h-9 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-full flex items-center justify-center transition border border-slate-200 cursor-pointer relative">
                             <i class="fa-regular fa-bell text-base pointer-events-none"></i>
-                            <span class="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
+                            <span id="notifBadgeDot" class="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
                         </button>
                         
                         <div id="notifDropdown" class="hidden absolute right-0 mt-2 w-64 sm:w-72 bg-white rounded-2xl shadow-xl border border-slate-200 p-4 z-50">
@@ -94,12 +95,12 @@
                                 <h4 class="font-bold text-sm text-slate-800">Notifikasaun</h4>
                                 <span class="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-semibold">Foun</span>
                             </div>
-                            <div class="space-y-3 text-xs text-slate-600">
+                            <div id="notifList" class="space-y-3 text-xs text-slate-600">
                                 <div class="flex items-start gap-2.5 p-2 rounded-xl bg-slate-50">
-                                    <i class="fa-solid fa-circle-check text-emerald-500 mt-0.5"></i>
+                                    <i class="fa-solid fa-info-circle text-blue-500 mt-0.5"></i>
                                     <div>
-                                        <p class="font-semibold text-slate-700">Koneksaun MQTT Estável</p>
-                                        <span class="text-[10px] text-slate-400">Sistemá prontu</span>
+                                        <p class="font-semibold text-slate-700">Sistemá Inisia</p>
+                                        <span class="text-[10px] text-slate-400">Hein ligasaun MQTT...</span>
                                     </div>
                                 </div>
                             </div>
