@@ -11,52 +11,120 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
     <!-- Custom App Entry Point (ES6 Modules) -->
     <script type="module" src="js/app.js"></script>
-
-    <style>
-        body { background-color: #f1f5f9; color: #1e293b; font-family: 'Inter', sans-serif; }
-        .sidebar { background-color: #1c2434; }
-    </style>
 </head>
-<body class="min-h-screen flex">
+<body class="min-h-screen flex bg-slate-100 text-slate-800">
 
     <!-- Sidebar Left -->
-    <aside class="sidebar w-64 min-h-screen text-slate-400 p-4 hidden md:flex flex-col justify-between shrink-0">
+    <aside id="sidebar" class="sidebar w-64 min-h-screen text-slate-400 p-4 flex flex-col justify-between shrink-0 transition-all duration-300">
         <div>
-            <div class="flex items-center gap-3 px-3 py-4 border-b border-slate-700/50 mb-6">
-                <div class="bg-blue-600 text-white p-2 rounded-lg text-xl"><i class="fa-solid fa-fish"></i></div>
-                <span class="text-white font-bold text-lg tracking-wide">FishAdmin</span>
+            <!-- Brand Logo -->
+            <div class="flex items-center justify-between px-3 py-4 border-b border-slate-700/50 mb-6">
+                <div class="flex items-center gap-3">
+                    <div class="bg-blue-600 text-white p-2 rounded-lg text-xl"><i class="fa-solid fa-fish"></i></div>
+                    <span class="text-white font-bold text-lg tracking-wide sidebar-text">FishAdmin</span>
+                </div>
             </div>
+            
+            <!-- Menu Links -->
             <ul class="space-y-1">
-                <li><a href="#" class="flex items-center gap-3 px-3 py-2 text-white bg-slate-800 rounded-lg font-medium text-sm"><i class="fa-solid fa-gauge-high text-blue-500"></i> Dashboard</a></li>
-                <li><a href="#tableSection" class="flex items-center gap-3 px-3 py-2 hover:text-white text-sm"><i class="fa-solid fa-table"></i> Históriku Tabela</a></li>
+                <li>
+                    <a href="#" class="flex items-center gap-3 px-3 py-2.5 text-white bg-slate-800 rounded-xl font-medium text-sm">
+                        <i class="fa-solid fa-gauge-high text-blue-500 text-base"></i> 
+                        <span class="sidebar-text">Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#tableSection" class="flex items-center gap-3 px-3 py-2.5 hover:text-white transition rounded-xl text-sm">
+                        <i class="fa-solid fa-table text-base"></i> 
+                        <span class="sidebar-text">Históriku Tabela</span>
+                    </a>
+                </li>
             </ul>
         </div>
-        <div class="px-3 py-4 text-xs text-slate-500">Fish Feeder v2.0</div>
+        <div class="px-3 py-4 text-xs text-slate-500 sidebar-text border-t border-slate-800">
+            Fish Feeder System v2.0
+        </div>
     </aside>
 
-    <!-- Main Content -->
-    <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+    <!-- Main Content Area -->
+    <div class="flex-1 flex flex-col min-w-0 min-h-screen overflow-hidden">
         
         <!-- Header -->
-        <header class="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center shadow-sm">
-            <h1 class="text-xl font-bold text-slate-800">IoT Dashboard</h1>
+        <header class="bg-white border-b border-slate-200 px-6 py-3.5 flex justify-between items-center shadow-sm relative z-10">
+            
+            <!-- Left Header: Toggle Sidebar & Title -->
             <div class="flex items-center gap-4">
-                <div id="statusBadge" class="flex items-center gap-2 bg-red-100 text-red-600 px-3 py-1 rounded-full text-xs font-semibold">
+                <button id="toggleSidebar" class="p-2 rounded-lg hover:bg-slate-100 text-slate-600 transition">
+                    <i class="fa-solid fa-bars text-lg"></i>
+                </button>
+                <h1 class="text-xl font-bold text-slate-800 hidden sm:block">IoT Dashboard</h1>
+            </div>
+
+            <!-- Right Header: Status, Notification & Admin User -->
+            <div class="flex items-center gap-4">
+                
+                <!-- MQTT Connection Status Badge -->
+                <div id="statusBadge" class="flex items-center gap-2 bg-red-100 text-red-600 px-3 py-1.5 rounded-full text-xs font-semibold">
                     <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span> Deskonetadu
                 </div>
+
+                <!-- Notifikasaun Icon -->
+                <div class="relative">
+                    <button id="btnNotification" class="w-9 h-9 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-full flex items-center justify-center transition relative">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
+                    </button>
+                    
+                    <!-- Notification Dropdown Menu -->
+                    <div id="notifDropdown" class="hidden absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-xl border border-slate-100 p-4 z-50">
+                        <div class="flex justify-between items-center border-b border-slate-100 pb-2 mb-3">
+                            <h4 class="font-bold text-sm text-slate-800">Notifikasaun</h4>
+                            <span class="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-semibold">Foun</span>
+                        </div>
+                        <div class="space-y-3 text-xs text-slate-600">
+                            <div class="flex items-start gap-2.5 p-2 rounded-xl bg-slate-50">
+                                <i class="fa-solid fa-circle-check text-emerald-500 mt-0.5"></i>
+                                <div>
+                                    <p class="font-semibold text-slate-700">Koneksaun MQTT Estável</p>
+                                    <span class="text-[10px] text-slate-400">Foin lalais ne'e</span>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-2.5 p-2 rounded-xl bg-slate-50">
+                                <i class="fa-solid fa-database text-blue-500 mt-0.5"></i>
+                                <div>
+                                    <p class="font-semibold text-slate-700">Firebase Sincronizado</p>
+                                    <span class="text-[10px] text-slate-400">Sistemá prontu</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin User Profile (Liman Loos) -->
+                <div class="flex items-center gap-3 border-l pl-4 border-slate-200">
+                    <img src="https://ui-avatars.com/api/?name=Lucas+Boavida&background=2563eb&color=fff" alt="Admin Profile" class="w-9 h-9 rounded-full border border-blue-500 shadow-sm">
+                    <div class="hidden md:block text-left text-xs">
+                        <div class="font-bold text-slate-800 leading-tight">Lucas Boavida</div>
+                        <div class="text-slate-400 text-[11px]">System Admin</div>
+                    </div>
+                </div>
+
             </div>
         </header>
 
-        <!-- Body -->
-        <main class="p-6 overflow-y-auto space-y-6">
+        <!-- Body Scrollable Content -->
+        <main class="flex-1 p-6 overflow-y-auto space-y-6">
 
-            <!-- Stats -->
+            <!-- Stat Cards -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 <!-- Temp Card -->
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
@@ -84,7 +152,7 @@
                 <!-- Control Feed -->
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
                     <div class="w-11 h-11 bg-amber-50 text-amber-600 rounded-full flex items-center justify-center text-lg"><i class="fa-solid fa-bowl-food"></i></div>
-                    <button id="btnFeed" class="mt-2 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-xl text-sm transition">
+                    <button id="btnFeed" class="mt-2 w-full bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-semibold py-2 rounded-xl text-sm transition">
                         <i class="fa-solid fa-paper-plane mr-1"></i> Fó Han Agora
                     </button>
                 </div>
@@ -118,7 +186,7 @@
                             <input type="time" id="sched2" value="17:00" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm">
                         </div>
                     </div>
-                    <button id="btnSchedule" class="w-full bg-slate-900 text-white font-medium py-2.5 rounded-xl text-sm flex items-center justify-center gap-2">
+                    <button id="btnSchedule" class="w-full bg-slate-900 text-white font-medium py-2.5 rounded-xl text-sm flex items-center justify-center gap-2 hover:bg-slate-800 transition">
                         <i class="fa-solid fa-floppy-disk"></i> Rai Oráriu
                     </button>
                 </div>
@@ -128,7 +196,7 @@
             <div id="tableSection" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-base font-bold text-slate-800">Históriku Dadus Firebase</h2>
-                    <button id="btnRefreshTable" class="bg-slate-100 text-slate-700 text-xs px-3 py-1.5 rounded-lg font-medium">
+                    <button id="btnRefreshTable" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs px-3 py-1.5 rounded-lg font-medium transition">
                         <i class="fa-solid fa-rotate-right mr-1"></i> Refresh Tabela
                     </button>
                 </div>
@@ -146,6 +214,12 @@
                     </table>
                 </div>
             </div>
+
+            <!-- Footer -->
+            <footer class="mt-8 pt-4 border-t border-slate-200 text-center sm:flex sm:justify-between sm:text-left text-xs text-slate-500">
+                <p>&copy; 2026 Automatic Fish Feeder System. Direitu Autorál Reservadu.</p>
+                <p class="mt-1 sm:mt-0">Dezenvolve husi: <span class="font-bold text-slate-700">Lucas Boavida</span></p>
+            </footer>
 
         </main>
     </div>
