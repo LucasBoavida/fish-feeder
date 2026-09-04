@@ -3,349 +3,151 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fish Feeder Web Dashboard</title>
-    <!-- Tailwind CSS CDN -->
+    <title>Fish Feeder - TailAdmin Dashboard</title>
+    
+    <!-- External Libraries (CDNs) -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- MQTT.js Library -->
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
-    <!-- Chart.js Library -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Firebase App no Realtime Database SDK (CDN Version) -->
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
+    <!-- Custom App Entry Point (ES6 Modules) -->
+    <script type="module" src="js/app.js"></script>
+
     <style>
-        body {
-            background-color: #0f172a;
-            color: #f8fafc;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        .card {
-            background-color: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 1rem;
-        }
+        body { background-color: #f1f5f9; color: #1e293b; font-family: 'Inter', sans-serif; }
+        .sidebar { background-color: #1c2434; }
     </style>
 </head>
-<body class="min-h-screen p-4 md:p-8">
-    <div class="max-w-6xl mx-auto space-y-6">
+<body class="min-h-screen flex">
+
+    <!-- Sidebar Left -->
+    <aside class="sidebar w-64 min-h-screen text-slate-400 p-4 hidden md:flex flex-col justify-between shrink-0">
+        <div>
+            <div class="flex items-center gap-3 px-3 py-4 border-b border-slate-700/50 mb-6">
+                <div class="bg-blue-600 text-white p-2 rounded-lg text-xl"><i class="fa-solid fa-fish"></i></div>
+                <span class="text-white font-bold text-lg tracking-wide">FishAdmin</span>
+            </div>
+            <ul class="space-y-1">
+                <li><a href="#" class="flex items-center gap-3 px-3 py-2 text-white bg-slate-800 rounded-lg font-medium text-sm"><i class="fa-solid fa-gauge-high text-blue-500"></i> Dashboard</a></li>
+                <li><a href="#tableSection" class="flex items-center gap-3 px-3 py-2 hover:text-white text-sm"><i class="fa-solid fa-table"></i> Históriku Tabela</a></li>
+            </ul>
+        </div>
+        <div class="px-3 py-4 text-xs text-slate-500">Fish Feeder v2.0</div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
         
         <!-- Header -->
-        <header class="card p-6 flex flex-col md:flex-row justify-between items-center shadow-lg">
-            <div class="flex items-center space-x-4 mb-4 md:mb-0">
-                <div class="bg-blue-600 p-3 rounded-full text-white text-2xl">
-                    <i class="fa-solid fa-fish"></i>
+        <header class="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center shadow-sm">
+            <h1 class="text-xl font-bold text-slate-800">IoT Dashboard</h1>
+            <div class="flex items-center gap-4">
+                <div id="statusBadge" class="flex items-center gap-2 bg-red-100 text-red-600 px-3 py-1 rounded-full text-xs font-semibold">
+                    <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span> Deskonetadu
                 </div>
-                <div>
-                    <h1 class="text-2xl font-bold">Automatic Fish Feeder</h1>
-                    <p class="text-slate-400 text-sm">Dashboard Kontrolu no Monitorizasaun Real-time (MQTT + Firebase)</p>
-                </div>
-            </div>
-            <div id="statusBadge" class="flex items-center space-x-2 bg-red-500/20 text-red-400 px-4 py-2 rounded-full border border-red-500/30 font-medium text-sm">
-                <span class="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse"></span> Deskonetadu
             </div>
         </header>
 
-        <!-- MQTT Credentials Form -->
-        <div class="card p-6 shadow-lg">
-            <h2 class="text-lg font-semibold text-slate-200 mb-4 flex items-center gap-2">
-                <i class="fa-solid fa-plug text-blue-400"></i> Konfigurasaun HiveMQ Cloud (MQTTS/WSS)
-            </h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div>
-                    <label class="block text-xs font-medium text-slate-400 mb-1">Broker Host (WSS)</label>
-                    <input type="text" id="mqttHost" value="616936635376438c8d09444543e28601.s1.eu.hivemq.cloud" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-slate-400 mb-1">Port (WSS)</label>
-                    <input type="number" id="mqttPort" value="8884" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-slate-400 mb-1">Username</label>
-                    <input type="text" id="mqttUser" value="fishfeeder" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-slate-400 mb-1">Password</label>
-                    <input type="password" id="mqttPass" value="fishfeeder26" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
-                </div>
-            </div>
-            <button onclick="connectMQTT()" class="mt-4 w-full md:w-auto bg-blue-600 hover:bg-blue-500 text-white font-medium px-6 py-2 rounded-lg transition duration-200 flex items-center justify-center gap-2">
-                <i class="fa-solid fa-wifi"></i> Ligar ba Broker
-            </button>
-        </div>
+        <!-- Body -->
+        <main class="p-6 overflow-y-auto space-y-6">
 
-        <!-- Dashboard Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-            <!-- Sensor Temp -->
-            <div class="card p-6 flex flex-col justify-between">
-                <div>
-                    <div class="flex justify-between items-center text-slate-400 mb-2">
-                        <span class="text-sm font-medium">Temperatura Bé</span>
-                        <i class="fa-solid fa-temperature-half text-amber-500 text-xl"></i>
-                    </div>
-                    <div class="text-4xl font-extrabold text-white mt-2" id="tempVal">-- °C</div>
-                </div>
-                <p class="text-xs text-slate-500 mt-4">Status: <span id="tempStatus" class="text-slate-400">Hein dadus...</span></p>
-            </div>
-
-            <!-- Sensor Level Aihan -->
-            <div class="card p-6 flex flex-col justify-between">
-                <div>
-                    <div class="flex justify-between items-center text-slate-400 mb-2">
-                        <span class="text-sm font-medium">Nível Aihan Ikan</span>
-                        <i class="fa-solid fa-wheat-awn text-emerald-500 text-xl"></i>
-                    </div>
-                    <div class="text-4xl font-extrabold text-white mt-2" id="foodVal">-- %</div>
-                </div>
-                <div class="w-full bg-slate-700 h-2 rounded-full overflow-hidden mt-4">
-                    <div id="foodBar" class="bg-emerald-500 h-full w-0 transition-all duration-500"></div>
-                </div>
-            </div>
-
-            <!-- Kontrolu Remote Feed -->
-            <div class="card p-6 flex flex-col justify-between bg-gradient-to-br from-slate-800 to-slate-900">
-                <div>
-                    <span class="text-sm font-medium text-slate-400">Kontrolu Diretu</span>
-                    <h3 class="text-xl font-bold text-white mt-1">Fó Han Agora</h3>
-                    <p class="text-xs text-slate-400 mt-1">Haruka sinal instantaneous ba ESP32 atu treke motor.</p>
-                </div>
-                <button onclick="publishFeed()" id="feedBtn" class="mt-6 w-full bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold py-3 rounded-xl shadow-lg transition duration-200 flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-bowl-food text-lg"></i> FÓ HAN (FEED)
-                </button>
-            </div>
-
-        </div>
-
-        <!-- Schedule & Chart Section -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
-            <!-- Schedule Form -->
-            <div class="card p-6 space-y-4">
-                <h3 class="text-lg font-bold text-slate-200 flex items-center gap-2">
-                    <i class="fa-regular fa-clock text-blue-400"></i> Atur Oráriu Fó Han
-                </h3>
-                <p class="text-xs text-slate-400">Oráriu ne'e sei haruka ba ESP32 no rai iha nia memória interna.</p>
-                <div class="space-y-3">
-                    <div>
-                        <label class="block text-xs text-slate-400 mb-1">Dadaun 1 (Oras Mahain)</label>
-                        <input type="time" id="sched1" value="07:00" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-xs text-slate-400 mb-1">Dadaun 2 (Oras Lokraik)</label>
-                        <input type="time" id="sched2" value="17:00" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
+            <!-- Stats -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Temp Card -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div class="w-11 h-11 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center text-lg"><i class="fa-solid fa-temperature-half"></i></div>
+                    <div class="mt-4">
+                        <h3 class="text-2xl font-bold text-slate-800" id="tempVal">-- °C</h3>
+                        <div class="flex justify-between items-center mt-1">
+                            <span class="text-xs text-slate-400 font-medium">Temperatura</span>
+                            <span id="tempStatus" class="text-xs font-semibold text-slate-500">Hein...</span>
+                        </div>
                     </div>
                 </div>
-                <button onclick="publishSchedule()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2 rounded-lg transition duration-200 flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-floppy-disk"></i> Rai Oráriu ba ESP32
-                </button>
-            </div>
 
-            <!-- Gráfico Realtime -->
-            <div class="card p-6 lg:col-span-2">
-                <h3 class="text-lg font-bold text-slate-200 mb-4 flex items-center gap-2">
-                    <i class="fa-solid fa-chart-line text-blue-400"></i> Históriku Temperatura Bé (Real-time Chart)
-                </h3>
-                <div class="h-64">
-                    <canvas id="tempChart"></canvas>
+                <!-- Food Card -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div class="w-11 h-11 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center text-lg"><i class="fa-solid fa-wheat-awn"></i></div>
+                    <div class="mt-4">
+                        <h3 class="text-2xl font-bold text-slate-800" id="foodVal">-- %</h3>
+                        <div class="w-full bg-slate-100 h-1.5 rounded-full mt-3 overflow-hidden">
+                            <div id="foodBar" class="bg-emerald-500 h-full w-0 transition-all duration-500"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Control Feed -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div class="w-11 h-11 bg-amber-50 text-amber-600 rounded-full flex items-center justify-center text-lg"><i class="fa-solid fa-bowl-food"></i></div>
+                    <button id="btnFeed" class="mt-2 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-xl text-sm transition">
+                        <i class="fa-solid fa-paper-plane mr-1"></i> Fó Han Agora
+                    </button>
+                </div>
+
+                <!-- Total Log Card -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div class="w-11 h-11 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center text-lg"><i class="fa-solid fa-database"></i></div>
+                    <div class="mt-4">
+                        <h3 class="text-2xl font-bold text-slate-800" id="totalRecords">0</h3>
+                        <span class="text-xs text-slate-400 font-medium">Registos iha Firebase</span>
+                    </div>
                 </div>
             </div>
 
-        </div>
+            <!-- Charts & Control -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm lg:col-span-2">
+                    <h2 class="text-base font-bold text-slate-800 mb-4">Monitórizasaun Temperatura</h2>
+                    <div class="h-64"><canvas id="tempChart"></canvas></div>
+                </div>
 
-        <!-- Logs Section -->
-        <div class="card p-6">
-            <h3 class="text-sm font-bold text-slate-400 mb-2 flex items-center gap-2">
-                <i class="fa-solid fa-terminal"></i> Console Logs
-            </h3>
-            <div id="logBox" class="bg-slate-950 p-4 rounded-lg h-32 overflow-y-auto text-xs font-mono text-emerald-400 space-y-1">
-                <div>[SYSTEM] Dashboard prontu. Hatama HiveMQ Credentials no klik 'Ligar ba Broker'.</div>
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <h2 class="text-base font-bold text-slate-800"><i class="fa-regular fa-clock text-blue-600"></i> Oráriu Fó Han</h2>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs text-slate-500 font-medium mb-1">Dadaun 1</label>
+                            <input type="time" id="sched1" value="07:00" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-500 font-medium mb-1">Dadaun 2</label>
+                            <input type="time" id="sched2" value="17:00" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm">
+                        </div>
+                    </div>
+                    <button id="btnSchedule" class="w-full bg-slate-900 text-white font-medium py-2.5 rounded-xl text-sm flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-floppy-disk"></i> Rai Oráriu
+                    </button>
+                </div>
             </div>
-        </div>
 
+            <!-- Table -->
+            <div id="tableSection" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-base font-bold text-slate-800">Históriku Dadus Firebase</h2>
+                    <button id="btnRefreshTable" class="bg-slate-100 text-slate-700 text-xs px-3 py-1.5 rounded-lg font-medium">
+                        <i class="fa-solid fa-rotate-right mr-1"></i> Refresh Tabela
+                    </button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left text-slate-600">
+                        <thead class="text-xs uppercase bg-slate-50 text-slate-400 font-semibold border-b border-slate-100">
+                            <tr>
+                                <th class="px-4 py-3">Tempo / Data</th>
+                                <th class="px-4 py-3">Temperatura (°C)</th>
+                                <th class="px-4 py-3">Nível Aihan (%)</th>
+                                <th class="px-4 py-3">Status Temp</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelaBody" class="divide-y divide-slate-100"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
     </div>
-
-    <!-- JavaScript Application Logic -->
-    <script>
-        // --- 1. Firebase Initialization ---
-        const firebaseConfig = {
-            apiKey: "AIzaSySyFktnxXLR0P3EnBMf7p1DEwdShB8",
-            authDomain: "fish-feeder-db.firebaseapp.com",
-            databaseURL: "https://fish-feeder-db-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "fish-feeder-db",
-            storageBucket: "fish-feeder-db.firebasestorage.app",
-            messagingSenderId: "498255146529",
-            appId: "1:498255146529:web:cabcdaf269e970c941bd60",
-            measurementId: "G-2YQVEHL7HK"
-        };
-
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-
-        function raiDadusBaFirebase(temp, food) {
-            const timestamp = new Date().toISOString();
-            database.ref('historiu_sensor').push({
-                temperatura: temp,
-                nivel_aihan: food,
-                tempo: timestamp
-            });
-        }
-
-        // --- 2. Chart setup ---
-        let client = null;
-        const ctx = document.getElementById('tempChart').getContext('2d');
-        const tempChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: [],
-                datasets: [{
-                    label: 'Temperatura (°C)',
-                    data: [],
-                    borderColor: '#f59e0b',
-                    backgroundColor: 'rgba(245, 158, 11, 0.1)',
-                    fill: true,
-                    tension: 0.3
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    x: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } },
-                    y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } }
-                },
-                plugins: {
-                    legend: { labels: { color: '#f8fafc' } }
-                }
-            }
-        });
-
-        function log(msg) {
-            const logBox = document.getElementById('logBox');
-            const time = new Date().toLocaleTimeString();
-            logBox.innerHTML += `<div>[${time}] ${msg}</div>`;
-            logBox.scrollTop = logBox.scrollHeight;
-        }
-
-        // --- 3. MQTT Logic ---
-        function connectMQTT() {
-            const host = document.getElementById('mqttHost').value.trim();
-            const port = document.getElementById('mqttPort').value.trim();
-            const user = document.getElementById('mqttUser').value.trim();
-            const pass = document.getElementById('mqttPass').value.trim();
-
-            if(!host || !user || !pass) {
-                alert('Favór preenxe Host, Username, no Password HiveMQ nian!');
-                return;
-            }
-
-            const connectUrl = `wss://${host}:${port}/mqtt`;
-            log(`Ligar daudaun ba ${connectUrl}...`);
-
-            client = mqtt.connect(connectUrl, {
-                clientId: 'WebDashboard_' + Math.random().toString(16).substr(2, 8),
-                username: user,
-                password: pass,
-                clean: true,
-                reconnectPeriod: 2000
-            });
-
-            client.on('connect', () => {
-                log('KONEKTA SUSESU BA HIVEMQ BROKER!');
-                document.getElementById('statusBadge').className = "flex items-center space-x-2 bg-emerald-500/20 text-emerald-400 px-4 py-2 rounded-full border border-emerald-500/30 font-medium text-sm";
-                document.getElementById('statusBadge').innerHTML = '<span class="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-ping"></span> Konetadu';
-
-                client.subscribe('fishfeeder/status/sensors');
-                client.subscribe('fishfeeder/status/online');
-                log('Subscritu ba topik: fishfeeder/status/#');
-            });
-
-            client.on('message', (topic, message) => {
-                const payload = message.toString();
-                log(`Simu [${topic}]: ${payload}`);
-
-                if(topic === 'fishfeeder/status/sensors') {
-                    try {
-                        const data = JSON.parse(payload);
-                        
-                        // Update Temp
-                        if(data.temp !== undefined) {
-                            document.getElementById('tempVal').innerText = data.temp + ' °C';
-                            
-                            // Status Temp
-                            if(data.temp > 30) {
-                                document.getElementById('tempStatus').innerText = "Manas Reitu!";
-                                document.getElementById('tempStatus').className = "text-red-400 font-bold";
-                            } else if(data.temp < 22) {
-                                document.getElementById('tempStatus').innerText = "Malarin Reitu!";
-                                document.getElementById('tempStatus').className = "text-blue-400 font-bold";
-                            } else {
-                                document.getElementById('tempStatus').innerText = "Normál";
-                                document.getElementById('tempStatus').className = "text-emerald-400 font-bold";
-                            }
-
-                            // Update Chart
-                            const now = new Date().toLocaleTimeString();
-                            if(tempChart.data.labels.length > 10) {
-                                tempChart.data.labels.shift();
-                                tempChart.data.datasets[0].data.shift();
-                            }
-                            tempChart.data.labels.push(now);
-                            tempChart.data.datasets[0].data.push(data.temp);
-                            tempChart.update();
-                        }
-
-                        // Update Food Level
-                        if(data.food !== undefined) {
-                            document.getElementById('foodVal').innerText = data.food + ' %';
-                            document.getElementById('foodBar').style.width = data.food + '%';
-                        }
-
-                        // Save to Firebase Database
-                        if(data.temp !== undefined && data.food !== undefined) {
-                            raiDadusBaFirebase(data.temp, data.food);
-                        }
-
-                    } catch(e) {
-                        console.error('JSON Error', e);
-                    }
-                }
-            });
-
-            client.on('error', (err) => {
-                log('ERRO: ' + err.message);
-            });
-
-            client.on('close', () => {
-                document.getElementById('statusBadge').className = "flex items-center space-x-2 bg-red-500/20 text-red-400 px-4 py-2 rounded-full border border-red-500/30 font-medium text-sm";
-                document.getElementById('statusBadge').innerHTML = '<span class="w-2.5 h-2.5 bg-red-500 rounded-full"></span> Deskonetadu';
-            });
-        }
-
-        function publishFeed() {
-            if(!client || !client.connected) {
-                alert('Ligar ba MQTT Broker konsoante lai!');
-                return;
-            }
-            client.publish('fishfeeder/cmd/feed', 'FEED');
-            log('Haruka komandu "FEED" ba fishfeeder/cmd/feed');
-        }
-
-        function publishSchedule() {
-            if(!client || !client.connected) {
-                alert('Ligar ba MQTT Broker konsoante lai!');
-                return;
-            }
-            const s1 = document.getElementById('sched1').value;
-            const s2 = document.getElementById('sched2').value;
-            const payload = JSON.stringify({ feed1: s1, feed2: s2 });
-
-            client.publish('fishfeeder/cmd/schedule', payload, { retain: true });
-            log(`Haruka Oráriu: ${payload} ba fishfeeder/cmd/schedule`);
-        }
-    </script>
 </body>
 </html>
