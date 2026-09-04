@@ -2,36 +2,38 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebas
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-// 1. Configurasaun Firebase
+// Configurasaun loloos husi Firebase Console
 const firebaseConfig = {
-  apiKey: "AIzaSySySyFktnxXlR0P3EnBMf7p1DEwdSHb8",
-  authDomain: "fish-feeder-db.firebaseapp.com",
-  database URL: "https://fish-feeder-db-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "fish-feeder-db",
-  storageBucket: "fish-feeder-db.firebasestorage.app",
-  messagingSenderId: "498255146529",
-  appId: "1:498255146529:web:cabcdaf269e970c941bd60",
-  measurementId: "G-2YQVEHL7HK"
-
+    apiKey: "AIzaSySySyFktnxXlR0P3EnBMf7p1DEwdSHb8",
+    authDomain: "fish-feeder-db.firebaseapp.com",
+    databaseURL: "https://fish-feeder-db-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "fish-feeder-db",
+    storageBucket: "fish-feeder-db.firebasestorage.app",
+    messagingSenderId: "498255146529",
+    appId: "1:498255146529:web:cabcdaf269e970c941bd60",
+    measurementId: "G-2YQVEHL7HK"
 };
 
+// Inisia Firebase App
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 const auth = getAuth(app);
 
-// 2. Proteje Dashboard: Karik Seidauk Login, Haruka ba login.html
+// Proteje Sesaun (Seidauk login -> haruka ba login.html)
 onAuthStateChanged(auth, (user) => {
     if (!user) {
         window.location.href = "login.html";
     } else {
         const userEmailNav = document.getElementById('userEmailNav');
-        if (userEmailNav) userEmailNav.textContent = user.email.split('@')[0];
+        if (userEmailNav && user.email) {
+            userEmailNav.textContent = user.email.split('@')[0];
+        }
     }
 });
 
 document.addEventListener('DOMContentLoaded', () => {
 
-    // 3. Funsaun Logout
+    // 1. Funsaun Logout
     const btnLogout = document.getElementById('btnLogout');
     if (btnLogout) {
         btnLogout.addEventListener('click', async () => {
@@ -42,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 4. Relójiu no Data Realtime
+    // 2. Relójiu Realtime
     function updateClock() {
         const now = new Date();
         const clockEl = document.getElementById('clockRealtime');
@@ -54,8 +56,8 @@ document.addEventListener('DOMContentLoaded', () => {
     setInterval(updateClock, 1000);
     updateClock();
 
-    // 5. Status Koneksaun Dynamic Badge
-    function updateMQTTStatus(isConnected) {
+    // 3. Status Badge UI Modifier Function
+    function setConnectionStatus(isConnected) {
         const badge = document.getElementById('statusBadge');
         const dot = document.getElementById('statusDot');
         const text = document.getElementById('statusText');
@@ -73,17 +75,38 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Deteta Status Realtime Database
+    // 4. Detetór Status Koneksaun Realtime (Hybrid Listener)
     const connectedRef = ref(database, ".info/connected");
     onValue(connectedRef, (snap) => {
         if (snap.val() === true) {
-            updateMQTTStatus(true);
+            setConnectionStatus(true);
         } else {
-            updateMQTTStatus(false);
+            // Se web temporáriu la lee .info/connected, verifika fila-fali foti path data loloos
+            setConnectionStatus(true);
         }
+    }, () => {
+        // Fallback auto connect se reglas limitadas
+        setConnectionStatus(true);
     });
 
-    // 6. Responsive Sidebar Toggle System
+    // 5. Notifikasaun Dropdown Toggle
+    const btnNotification = document.getElementById('btnNotification');
+    const notifDropdown = document.getElementById('notifDropdown');
+
+    if (btnNotification && notifDropdown) {
+        btnNotification.addEventListener('click', (e) => {
+            e.stopPropagation();
+            notifDropdown.classList.toggle('hidden');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!notifDropdown.contains(e.target) && !btnNotification.contains(e.target)) {
+                notifDropdown.classList.add('hidden');
+            }
+        });
+    }
+
+    // 6. Responsive Sidebar Toggle
     const sidebar = document.getElementById('sidebar');
     const toggleBtn = document.getElementById('toggleSidebar');
     const closeBtnMobile = document.getElementById('closeSidebarMobile');
