@@ -2,7 +2,6 @@ import { raiDadusBaFirebase, fotiDadusFirebase } from './firebase-service.js';
 import { initMQTT, publishFeed, publishSchedule } from './mqtt-service.js';
 import { initChart, updateChartData } from './chart-service.js';
 
-// Funsaun Relójiu Realtime
 function updateRealtimeClock() {
     const clockEl = document.getElementById('clockRealtime');
     const dateEl = document.getElementById('dateRealtime');
@@ -13,7 +12,6 @@ function updateRealtimeClock() {
     dateEl.innerText = now.toLocaleDateString('pt-PT', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
 }
 
-// Funsaun Renderiza Tabela
 function renderTable() {
     fotiDadusFirebase(10, (listData) => {
         const tabelaBody = document.getElementById('tabelaBody');
@@ -50,11 +48,11 @@ function renderTable() {
 
 document.addEventListener('DOMContentLoaded', () => {
 
-    // 1. Relójiu Realtime Timer
+    // 1. Clock Timer
     setInterval(updateRealtimeClock, 1000);
     updateRealtimeClock();
 
-    // 2. Chart, Table, & MQTT
+    // 2. Init Components
     initChart('tempChart');
     renderTable();
 
@@ -107,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     );
 
-    // 3. Servo Action
+    // 3. Servo Feed Action
     const btnFeed = document.getElementById('btnFeed');
     const servoStatus = document.getElementById('servoStatus');
     const servoDot = document.getElementById('servoDot');
@@ -141,35 +139,37 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (btnRefresh) btnRefresh.addEventListener('click', renderTable);
 
-    // 4. Sidebar Toggle Fixed
+    // 4. Sidebar Smooth Slide Function
     const sidebar = document.getElementById('sidebar');
     const toggleBtn = document.getElementById('toggleSidebar');
     const closeBtnMobile = document.getElementById('closeSidebarMobile');
     const overlay = document.getElementById('sidebarOverlay');
 
-    if (toggleBtn && sidebar) {
-        toggleBtn.onclick = function (e) {
+    function openSidebar() {
+        if (sidebar) sidebar.classList.remove('-translate-x-full');
+        if (overlay) overlay.classList.remove('hidden');
+    }
+
+    function closeSidebar() {
+        if (sidebar) sidebar.classList.add('-translate-x-full');
+        if (overlay) overlay.classList.add('hidden');
+    }
+
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            sidebar.classList.toggle('hidden');
-            if (overlay) overlay.classList.toggle('hidden');
-        };
+            if (sidebar.classList.contains('-translate-x-full')) {
+                openSidebar();
+            } else {
+                closeSidebar();
+            }
+        });
     }
 
-    if (closeBtnMobile) {
-        closeBtnMobile.onclick = function() {
-            if (sidebar) sidebar.classList.add('hidden');
-            if (overlay) overlay.classList.add('hidden');
-        };
-    }
+    if (closeBtnMobile) closeBtnMobile.addEventListener('click', closeSidebar);
+    if (overlay) overlay.addEventListener('click', closeSidebar);
 
-    if (overlay) {
-        overlay.onclick = function() {
-            if (sidebar) sidebar.classList.add('hidden');
-            overlay.classList.add('hidden');
-        };
-    }
-
-    // Dropdown Notifikasaun
+    // Notifikasaun Dropdown
     const btnNotif = document.getElementById('btnNotification');
     const notifDropdown = document.getElementById('notifDropdown');
 
