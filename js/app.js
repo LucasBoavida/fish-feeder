@@ -2,7 +2,18 @@ import { raiDadusBaFirebase, fotiDadusFirebase } from './firebase-service.js';
 import { initMQTT, publishFeed, publishSchedule } from './mqtt-service.js';
 import { initChart, updateChartData } from './chart-service.js';
 
-// Funsaun atu Renderiza Tabela
+// Funsaun Relójiu Realtime
+function updateRealtimeClock() {
+    const clockEl = document.getElementById('clockRealtime');
+    const dateEl = document.getElementById('dateRealtime');
+    if (!clockEl || !dateEl) return;
+
+    const now = new Date();
+    clockEl.innerText = now.toLocaleTimeString();
+    dateEl.innerText = now.toLocaleDateString('pt-PT', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+// Funsaun Renderiza Tabela
 function renderTable() {
     fotiDadusFirebase(10, (listData) => {
         const tabelaBody = document.getElementById('tabelaBody');
@@ -37,10 +48,13 @@ function renderTable() {
     });
 }
 
-// Inisialisasaun Principal
 document.addEventListener('DOMContentLoaded', () => {
 
-    // 1. Chart, Table, & MQTT
+    // 1. Relójiu Realtime Timer
+    setInterval(updateRealtimeClock, 1000);
+    updateRealtimeClock();
+
+    // 2. Chart, Table, & MQTT
     initChart('tempChart');
     renderTable();
 
@@ -93,12 +107,31 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     );
 
-    // 2. Event Listeners Action
+    // 3. Servo Action
     const btnFeed = document.getElementById('btnFeed');
+    const servoStatus = document.getElementById('servoStatus');
+    const servoDot = document.getElementById('servoDot');
+
+    if (btnFeed) {
+        btnFeed.addEventListener('click', () => {
+            publishFeed();
+            if (servoStatus && servoDot) {
+                servoStatus.innerText = "Aberto (Loke)";
+                servoStatus.className = "text-base font-bold text-emerald-600";
+                servoDot.className = "w-2.5 h-2.5 bg-emerald-500 rounded-full animate-ping";
+
+                setTimeout(() => {
+                    servoStatus.innerText = "Fechado (Taka)";
+                    servoStatus.className = "text-base font-bold text-slate-800";
+                    servoDot.className = "w-2.5 h-2.5 bg-slate-400 rounded-full";
+                }, 3000);
+            }
+        });
+    }
+
     const btnSchedule = document.getElementById('btnSchedule');
     const btnRefresh = document.getElementById('btnRefreshTable');
 
-    if (btnFeed) btnFeed.addEventListener('click', publishFeed);
     if (btnSchedule) {
         btnSchedule.addEventListener('click', () => {
             const s1 = document.getElementById('sched1').value;
@@ -108,7 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (btnRefresh) btnRefresh.addEventListener('click', renderTable);
 
-    // 3. LÓJIKA DIRETA BA TOGGLE SIDEBAR (FIX)
+    // 4. Sidebar Toggle Fixed
     const sidebar = document.getElementById('sidebar');
     const toggleBtn = document.getElementById('toggleSidebar');
     const closeBtnMobile = document.getElementById('closeSidebarMobile');
@@ -117,17 +150,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (toggleBtn && sidebar) {
         toggleBtn.onclick = function (e) {
             e.stopPropagation();
-            // Taka ka hamosu sidebar ho class hidden
             sidebar.classList.toggle('hidden');
-            
-            // Se loke iha mobile
-            if (window.innerWidth < 768) {
-                if (sidebar.classList.contains('hidden')) {
-                    if (overlay) overlay.classList.add('hidden');
-                } else {
-                    if (overlay) overlay.classList.remove('hidden');
-                }
-            }
+            if (overlay) overlay.classList.toggle('hidden');
         };
     }
 
@@ -145,7 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    // 4. LÓJIKA DIRETA BA DROPDOWN NOTIFIKASAUN (FIX)
+    // Dropdown Notifikasaun
     const btnNotif = document.getElementById('btnNotification');
     const notifDropdown = document.getElementById('notifDropdown');
 
