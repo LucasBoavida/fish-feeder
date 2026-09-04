@@ -3,13 +3,22 @@ import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https:/
 
 // Configurasaun Firebase
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-    databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT_ID.appspot.com",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
+  apiKey: "AIzaSySySyFktnxXlR0P3EnBMf7p1DEwdSHb8",
+
+  authDomain: "fish-feeder-db.firebaseapp.com",
+
+  database URL: "https://fish-feeder-db-default-rtdb.asia-southeast1.firebasedatabase.app",
+
+  projectId: "fish-feeder-db",
+
+  storageBucket: "fish-feeder-db.firebasestorage.app",
+
+  messagingSenderId: "498255146529",
+
+  appId: "1:498255146529:web:cabcdaf269e970c941bd60",
+
+  measurementId: "G-2YQVEHL7HK"
+
 };
 
 const app = initializeApp(firebaseConfig);
