@@ -1,4 +1,3 @@
-
 import { raiDadusBaFirebase, fotiDadusFirebase } from './firebase-service.js';
 import { initMQTT, publishFeed, publishSchedule } from './mqtt-service.js';
 import { initChart, updateChartData } from './chart-service.js';
@@ -80,10 +79,10 @@ window.addEventListener('DOMContentLoaded', () => {
         (isConnected) => {
             const badge = document.getElementById('statusBadge');
             if (isConnected) {
-                badge.className = "flex items-center gap-2 bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-semibold";
+                badge.className = "flex items-center gap-2 bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-full text-xs font-semibold";
                 badge.innerHTML = '<span class="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></span> Konetadu';
             } else {
-                badge.className = "flex items-center gap-2 bg-red-100 text-red-600 px-3 py-1 rounded-full text-xs font-semibold";
+                badge.className = "flex items-center gap-2 bg-red-100 text-red-600 px-3 py-1.5 rounded-full text-xs font-semibold";
                 badge.innerHTML = '<span class="w-2 h-2 bg-red-500 rounded-full"></span> Deskonetadu';
             }
         }
@@ -97,4 +96,26 @@ window.addEventListener('DOMContentLoaded', () => {
         publishSchedule(s1, s2);
     });
     document.getElementById('btnRefreshTable').addEventListener('click', renderTable);
+
+    // 4. Toggle Subar / Hamosu Sidebar
+    const sidebar = document.getElementById('sidebar');
+    const toggleBtn = document.getElementById('toggleSidebar');
+    toggleBtn.addEventListener('click', () => {
+        sidebar.classList.toggle('-ml-64');
+    });
+
+    // 5. Toggle Dropdown Notifikasaun
+    const btnNotif = document.getElementById('btnNotification');
+    const notifDropdown = document.getElementById('notifDropdown');
+    btnNotif.addEventListener('click', (e) => {
+        e.stopPropagation();
+        notifDropdown.classList.toggle('hidden');
+    });
+
+    // Taka dropdown bainhira klik iha li'ur
+    document.addEventListener('click', () => {
+        if (!notifDropdown.classList.contains('hidden')) {
+            notifDropdown.classList.add('hidden');
+        }
+    });
 });
