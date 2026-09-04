@@ -1,44 +1,58 @@
-import { raiDadusBaFirebase, fotiDadusFirebase } from './firebase-service.js';
-import { initMQTT, publishFeed, publishSchedule } from './mqtt-service.js';
-import { initChart, updateChartData } from './chart-service.js';
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
+// 1. Configurasaun Firebase
+const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+    databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_PROJECT_ID.appspot.com",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId: "YOUR_APP_ID"
+};
+
+const app = initializeApp(firebaseConfig);
+const database = getDatabase(app);
+const auth = getAuth(app);
+
+// 2. Proteje Dashboard: Karik Seidauk Login, Haruka ba login.html
+onAuthStateChanged(auth, (user) => {
+    if (!user) {
+        window.location.href = "login.html";
+    } else {
+        const userEmailNav = document.getElementById('userEmailNav');
+        if (userEmailNav) userEmailNav.textContent = user.email.split('@')[0];
+    }
+});
 
 document.addEventListener('DOMContentLoaded', () => {
 
-    // 1. Relójiu no Data Realtime
-    function updateClock() {
-        const now = new Date();
-        const timeStr = now.toLocaleTimeString('pt-PT');
-        const dateStr = now.toLocaleDateString('pt-PT');
-
-        const clockEl = document.getElementById('clockRealtime');
-        const dateEl = document.getElementById('dateRealtime');
-
-        if (clockEl) clockEl.textContent = timeStr;
-        if (dateEl) dateEl.textContent = dateStr;
-    }
-    setInterval(updateClock, 1000);
-    updateClock();
-
-    // 2. Notifikasaun Dropdown Handler
-    const btnNotification = document.getElementById('btnNotification');
-    const notifDropdown = document.getElementById('notifDropdown');
-
-    if (btnNotification && notifDropdown) {
-        btnNotification.addEventListener('click', (e) => {
-            e.stopPropagation();
-            notifDropdown.classList.toggle('hidden');
-        });
-
-        // Taka dropdown karik klik iha li'ur
-        document.addEventListener('click', (e) => {
-            if (!notifDropdown.contains(e.target) && !btnNotification.contains(e.target)) {
-                notifDropdown.classList.add('hidden');
+    // 3. Funsaun Logout
+    const btnLogout = document.getElementById('btnLogout');
+    if (btnLogout) {
+        btnLogout.addEventListener('click', async () => {
+            if (confirm("Ita hakarak sai husi sistema Dashboard?")) {
+                await signOut(auth);
+                window.location.href = "login.html";
             }
         });
     }
 
-    // 3. Status MQTT Connect State Helper
+    // 4. Relójiu no Data Realtime
+    function updateClock() {
+        const now = new Date();
+        const clockEl = document.getElementById('clockRealtime');
+        const dateEl = document.getElementById('dateRealtime');
+
+        if (clockEl) clockEl.textContent = now.toLocaleTimeString('pt-PT');
+        if (dateEl) dateEl.textContent = now.toLocaleDateString('pt-PT');
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // 5. Status Koneksaun Dynamic Badge
     function updateMQTTStatus(isConnected) {
         const badge = document.getElementById('statusBadge');
         const dot = document.getElementById('statusDot');
@@ -57,43 +71,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- SETUP KONEKSAUN MQTT REAL LOKÁL / BROKER EMQX ---
-    // Atu konekta ba broker public EMQX (WebSocket port 8083/8084):
-    const brokerUrl = 'wss://broker.emqx.io:8084/mqtt';
-    
-    try {
-        if (typeof mqtt !== 'undefined') {
-            const client = mqtt.connect(brokerUrl, {
-                keepalive: 60,
-                clientId: 'fishfeeder_' + Math.random().toString(16).substr(2, 8),
-                clean: true,
-                connectTimeout: 4000
-            });
-
-            client.on('connect', () => {
-                console.log('MQTT Konetadu Susesu!');
-                updateMQTTStatus(true);
-            });
-
-            client.on('offline', () => {
-                console.log('MQTT Deskonetadu');
-                updateMQTTStatus(false);
-            });
-
-            client.on('error', (err) => {
-                console.error('MQTT Erru:', err);
-                updateMQTTStatus(false);
-            });
+    // Deteta Status Realtime Database
+    const connectedRef = ref(database, ".info/connected");
+    onValue(connectedRef, (snap) => {
+        if (snap.val() === true) {
+            updateMQTTStatus(true);
         } else {
-            // Se mqtt la deskobre ka lala'o, foti simulasaun konetadu automatiku hafoin segundu 1
-            setTimeout(() => updateMQTTStatus(true), 1000);
+            updateMQTTStatus(false);
         }
-    } catch (e) {
-        // Fallback simulasaun automatiku se iha bloqueiu ruma
-        setTimeout(() => updateMQTTStatus(true), 1000);
-    }
+    });
 
-    // 4. Smart Responsive Sidebar Toggle System
+    // 6. Responsive Sidebar Toggle System
     const sidebar = document.getElementById('sidebar');
     const toggleBtn = document.getElementById('toggleSidebar');
     const closeBtnMobile = document.getElementById('closeSidebarMobile');
@@ -121,24 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    if (toggleBtn) {
-        toggleBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            toggleSidebarState();
-        });
-    }
-
-    if (closeBtnMobile) {
-        closeBtnMobile.addEventListener('click', () => {
-            sidebar.classList.add('-translate-x-full');
-            overlay.classList.add('hidden');
-        });
-    }
-
-    if (overlay) {
-        overlay.addEventListener('click', () => {
-            sidebar.classList.add('-translate-x-full');
-            overlay.classList.add('hidden');
-        });
-    }
+    if (toggleBtn) toggleBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleSidebarState(); });
+    if (closeBtnMobile) closeBtnMobile.addEventListener('click', () => { sidebar.classList.add('-translate-x-full'); overlay.classList.add('hidden'); });
+    if (overlay) overlay.addEventListener('click', () => { sidebar.classList.add('-translate-x-full'); overlay.classList.add('hidden'); });
 });
