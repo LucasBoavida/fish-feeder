@@ -37,10 +37,10 @@ function renderTable() {
     });
 }
 
-// Executa Bainhira HTML Hotu-Hotu Ready Ona
-window.addEventListener('DOMContentLoaded', () => {
+// Inisialisasaun Principal
+document.addEventListener('DOMContentLoaded', () => {
 
-    // 1. Inisialisasaun Chart, Table, & MQTT
+    // 1. Chart, Table, & MQTT
     initChart('tempChart');
     renderTable();
 
@@ -93,7 +93,7 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     );
 
-    // 2. Event Listeners ba Action Buttons
+    // 2. Event Listeners Action
     const btnFeed = document.getElementById('btnFeed');
     const btnSchedule = document.getElementById('btnSchedule');
     const btnRefresh = document.getElementById('btnRefreshTable');
@@ -108,53 +108,57 @@ window.addEventListener('DOMContentLoaded', () => {
     }
     if (btnRefresh) btnRefresh.addEventListener('click', renderTable);
 
-    // 3. LÓJIKA SIDEBAR RESPONSIVE (Fix Toggle & Overlay)
+    // 3. LÓJIKA DIRETA BA TOGGLE SIDEBAR (FIX)
     const sidebar = document.getElementById('sidebar');
     const toggleBtn = document.getElementById('toggleSidebar');
     const closeBtnMobile = document.getElementById('closeSidebarMobile');
     const overlay = document.getElementById('sidebarOverlay');
 
     if (toggleBtn && sidebar) {
-        toggleBtn.addEventListener('click', (e) => {
+        toggleBtn.onclick = function (e) {
             e.stopPropagation();
+            // Taka ka hamosu sidebar ho class hidden
+            sidebar.classList.toggle('hidden');
             
-            // Iha Screen Desktop (md:)
-            if (window.innerWidth >= 768) {
-                sidebar.classList.toggle('md:hidden');
-            } 
-            // Iha Screen Mobile (<768px)
-            else {
-                if (sidebar.classList.contains('-translate-x-full')) {
-                    sidebar.classList.remove('-translate-x-full');
-                    if (overlay) overlay.classList.remove('hidden');
-                } else {
-                    sidebar.classList.add('-translate-x-full');
+            // Se loke iha mobile
+            if (window.innerWidth < 768) {
+                if (sidebar.classList.contains('hidden')) {
                     if (overlay) overlay.classList.add('hidden');
+                } else {
+                    if (overlay) overlay.classList.remove('hidden');
                 }
             }
-        });
+        };
     }
 
-    const hideMobileSidebar = () => {
-        if (sidebar) sidebar.classList.add('-translate-x-full');
-        if (overlay) overlay.classList.add('hidden');
-    };
+    if (closeBtnMobile) {
+        closeBtnMobile.onclick = function() {
+            if (sidebar) sidebar.classList.add('hidden');
+            if (overlay) overlay.classList.add('hidden');
+        };
+    }
 
-    if (closeBtnMobile) closeBtnMobile.addEventListener('click', hideMobileSidebar);
-    if (overlay) overlay.addEventListener('click', hideMobileSidebar);
+    if (overlay) {
+        overlay.onclick = function() {
+            if (sidebar) sidebar.classList.add('hidden');
+            overlay.classList.add('hidden');
+        };
+    }
 
-    // 4. Lójika Dropdown Notifikasaun
+    // 4. LÓJIKA DIRETA BA DROPDOWN NOTIFIKASAUN (FIX)
     const btnNotif = document.getElementById('btnNotification');
     const notifDropdown = document.getElementById('notifDropdown');
 
     if (btnNotif && notifDropdown) {
-        btnNotif.addEventListener('click', (e) => {
+        btnNotif.onclick = function (e) {
             e.stopPropagation();
             notifDropdown.classList.toggle('hidden');
-        });
+        };
 
-        document.addEventListener('click', () => {
-            notifDropdown.classList.add('hidden');
-        });
+        document.onclick = function (e) {
+            if (!notifDropdown.contains(e.target) && e.target !== btnNotif) {
+                notifDropdown.classList.add('hidden');
+            }
+        };
     }
 });
