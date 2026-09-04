@@ -1,1 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Fish Feeder System</title>
+    
+    <!-- Tailwind CSS & FontAwesome -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- App Entry Point (Auth Logic) -->
+    <script type="module" src="js/auth.js"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex items-center justify-center p-4">
 
+    <div class="w-full max-w-md bg-slate-800 rounded-3xl border border-slate-700/60 shadow-2xl p-6 sm:p-8 space-y-6">
+        
+        <!-- Brand / Header -->
+        <div class="text-center space-y-2">
+            <div class="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center text-white text-2xl mx-auto shadow-lg shadow-blue-600/30">
+                <i class="fa-solid fa-fish"></i>
+            </div>
+            <h2 class="text-2xl font-bold tracking-tight text-white">FishAdmin Login</h2>
+            <p class="text-slate-400 text-xs">Preenxe email no password hodi tama Dashboard</p>
+        </div>
+
+        <!-- Alert Error Bar -->
+        <div id="errorAlert" class="hidden bg-red-500/10 border border-red-500/30 text-red-400 text-xs p-3 rounded-xl flex items-center gap-2">
+            <i class="fa-solid fa-circle-exclamation text-sm shrink-0"></i>
+            <span id="errorMessage">Email ka password salutu!</span>
+        </div>
+
+        <!-- Form Login -->
+        <form id="loginForm" class="space-y-4">
+            <div>
+                <label class="block text-xs font-medium text-slate-300 mb-1.5">Email Admin</label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 text-sm">
+                        <i class="fa-regular fa-envelope"></i>
+                    </span>
+                    <input type="email" id="loginEmail" required placeholder="admin@fishfeeder.com" class="w-full bg-slate-900/60 border border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 transition">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-medium text-slate-300 mb-1.5">Password</label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 text-sm">
+                        <i class="fa-solid fa-lock"></i>
+                    </span>
+                    <input type="password" id="loginPassword" required placeholder="••••••••" class="w-full bg-slate-900/60 border border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 transition">
+                </div>
+            </div>
+
+            <button type="submit" id="btnLoginSubmit" class="w-full bg-blue-600 hover:bg-blue-500 active:scale-95 text-white font-semibold py-2.5 rounded-xl text-sm transition shadow-lg shadow-blue-600/25 flex items-center justify-center gap-2 cursor-pointer">
+                <span>Entra</span>
+                <i class="fa-solid fa-right-to-bracket text-xs"></i>
+            </button>
+        </form>
+
+        <div class="text-center border-t border-slate-700/50 pt-4 text-[11px] text-slate-500">
+            Automatic Fish Feeder IoT System &copy; 2026
+        </div>
+    </div>
+
+</body>
+</html>
