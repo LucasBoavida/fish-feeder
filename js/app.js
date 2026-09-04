@@ -1,3 +1,8 @@
+import { raiDadusBaFirebase, fotiDadusFirebase } from './firebase-service.js';
+import { initMQTT, publishFeed, publishSchedule } from './mqtt-service.js';
+import { initChart, updateChartData } from './chart-service.js';
+
+
 document.addEventListener('DOMContentLoaded', () => {
 
     // 1. Relójiu no Data Realtime
