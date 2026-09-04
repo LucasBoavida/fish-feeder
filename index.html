@@ -23,19 +23,19 @@
 </head>
 <body class="bg-slate-100 text-slate-800 antialiased min-h-screen">
 
-    <!-- Mobile Overlay Screen -->
-    <div id="sidebarOverlay" class="fixed inset-0 bg-slate-900/50 z-30 hidden transition-opacity"></div>
+    <!-- Mobile Overlay Screen (Hatudu de'it iha tela ki'ik) -->
+    <div id="sidebarOverlay" class="fixed inset-0 bg-slate-900/50 z-30 hidden md:!hidden transition-opacity"></div>
 
     <div class="flex min-h-screen w-full relative">
         
         <!-- Sidebar Component -->
-        <aside id="sidebar" class="w-64 bg-[#1c2434] text-slate-400 p-4 flex flex-col justify-between shrink-0 fixed md:static inset-y-0 left-0 z-40 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
+        <aside id="sidebar" class="w-64 bg-[#1c2434] text-slate-400 p-4 flex flex-col justify-between shrink-0 fixed md:static inset-y-0 left-0 z-40 transform -translate-x-full md:translate-x-0 transition-all duration-300 ease-in-out">
             <div>
                 <!-- Brand Logo -->
                 <div class="flex items-center justify-between px-3 py-4 border-b border-slate-700/50 mb-6">
                     <div class="flex items-center gap-3">
                         <div class="bg-blue-600 text-white p-2 rounded-lg text-xl"><i class="fa-solid fa-fish"></i></div>
-                        <span class="text-white font-bold text-lg tracking-wide">FishAdmin</span>
+                        <span class="text-white font-bold text-lg tracking-wide sidebar-text">FishAdmin</span>
                     </div>
                     <button id="closeSidebarMobile" class="md:hidden text-slate-400 hover:text-white p-2">
                         <i class="fa-solid fa-xmark text-xl"></i>
@@ -47,18 +47,18 @@
                     <li>
                         <a href="#" class="flex items-center gap-3 px-3 py-2.5 text-white bg-slate-800 rounded-xl font-medium text-sm">
                             <i class="fa-solid fa-gauge-high text-blue-500 text-base"></i> 
-                            <span>Dashboard</span>
+                            <span class="sidebar-text">Dashboard</span>
                         </a>
                     </li>
                     <li>
                         <a href="#tableSection" class="flex items-center gap-3 px-3 py-2.5 hover:text-white transition rounded-xl text-sm">
                             <i class="fa-solid fa-table text-base"></i> 
-                            <span>Históriku Tabela</span>
+                            <span class="sidebar-text">Históriku Tabela</span>
                         </a>
                     </li>
                 </ul>
             </div>
-            <div class="px-3 py-4 text-xs text-slate-500 border-t border-slate-800">
+            <div class="px-3 py-4 text-xs text-slate-500 border-t border-slate-800 sidebar-text">
                 Fish Feeder System v2.0
             </div>
         </aside>
