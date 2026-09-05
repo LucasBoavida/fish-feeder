@@ -1,6 +1,6 @@
+import { firebaseConfig } from "./config.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { firebaseConfig } from "./config.js";
 
 const firebaseConfig = {
       apiKey: "AIzaSySySyFktnxXlR0P3EnBMf7p1DEwdSHb8",
