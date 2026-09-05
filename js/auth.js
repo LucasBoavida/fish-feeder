@@ -19,8 +19,8 @@ const auth = getAuth(app);
 // 1. Verifika Sesaun: Se login tiha ona, haruka diretu ba index.html
 onAuthStateChanged(auth, (user) => {
     if (user) {
-        console.log("User login tiha ona:", user.email);
-        window.location.assign("index.html");
+        console.log("User ativu hela:", user.email);
+        window.location.href = "index.html";
     }
 });
 
