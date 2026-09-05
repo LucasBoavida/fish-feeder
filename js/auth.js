@@ -24,53 +24,46 @@ onAuthStateChanged(auth, (user) => {
     }
 });
 
-// 2. Prosesu Form Login
+// 2. Kódigu Form Login ho Redireksiona Garanti
 document.addEventListener('DOMContentLoaded', () => {
-    const loginForm = document.getElementById('loginForm');
-    const errorAlert = document.getElementById('errorAlert');
-    const errorMessage = document.getElementById('errorMessage');
-    const btnSubmit = document.getElementById('btnLoginSubmit');
+    // Foti elementus husi HTML
+    const loginForm = document.querySelector('form');
+    const emailInput = document.querySelector('input[type="email"]');
+    const passwordInput = document.querySelector('input[type="password"]');
+    const submitBtn = document.querySelector('button[type="submit"]');
 
     if (loginForm) {
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
-            const email = document.getElementById('loginEmail').value.trim();
-            const password = document.getElementById('loginPassword').value.trim();
 
-            if (btnSubmit) {
-                btnSubmit.disabled = true;
-                btnSubmit.innerText = "Hein ho pasiénsia...";
+            const email = emailInput ? emailInput.value.trim() : "";
+            const password = passwordInput ? passwordInput.value.trim() : "";
+
+            if (!email || !password) {
+                alert("Favor hatama Email no Password!");
+                return;
+            }
+
+            // Muta botaun nia textu ba Loading
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerText = "Prosesa hela...";
             }
 
             try {
-                if (errorAlert) errorAlert.classList.add('hidden');
-                
-                // Login ba Firebase Auth
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                console.log("Login Susesu:", userCredential.user);
-
-                // Diresiona diretu ba index.html
-                window.location.replace("index.html");
+                console.log("Susesu tama:", userCredential.user);
+                
+                // Redireksiona dudu ba Dashboard
+                window.location.href = "index.html";
 
             } catch (error) {
-                console.error("Login Erru:", error.code, error.message);
+                console.error("Erru login:", error);
+                alert("Erru Login: " + error.message);
                 
-                if (btnSubmit) {
-                    btnSubmit.disabled = false;
-                    btnSubmit.innerHTML = '<span>Entra</span> <i class="fa-solid fa-right-to-bracket text-xs"></i>';
-                }
-
-                if (errorAlert && errorMessage) {
-                    errorAlert.classList.remove('hidden');
-                    
-                    if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-                        errorMessage.textContent = "Email ka Password sala! Verifika fali.";
-                    } else if (error.code === 'auth/too-many-requests') {
-                        errorMessage.textContent = "Tentativa barak liu. Hein oituan ruma no koko fali.";
-                    } else {
-                        errorMessage.textContent = "Erru: " + error.message;
-                    }
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = "Entra";
                 }
             }
         });
