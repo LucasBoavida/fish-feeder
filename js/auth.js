@@ -1,149 +1,24 @@
 import { firebaseConfig } from "./config.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-
-// Inisia Firebase App, Auth no Realtime Database
-const app = initializeApp(firebaseConfig);
-const database = getDatabase(app);
-const auth = getAuth(app);
-
-// Proteje Sesaun (Se seidauk login -> redireksiona ba login.html)
-onAuthStateChanged(auth, (user) => {
-    if (!user) {
-        window.location.assign("login.html");
-    } else {
-        const userEmailNav = document.getElementById('userEmailNav');
-        if (userEmailNav && user.email) {
-            userEmailNav.textContent = user.email.split('@')[0];
-        }
-    }
-});
-
-document.addEventListener('DOMContentLoaded', () => {
-
-    // 1. Funsaun Logout
-    const btnLogout = document.getElementById('btnLogout');
-    if (btnLogout) {
-        btnLogout.addEventListener('click', async () => {
-            if (confirm("Ita hakarak sai husi sistema Dashboard?")) {
-                await signOut(auth);
-                window.location.assign("login.html");
-            }
-        });
-    }
-
-    // 2. Relójiu Realtime
-    function updateClock() {
-        const now = new Date();
-        const clockEl = document.getElementById('clockRealtime');
-        const dateEl = document.getElementById('dateRealtime');
-
-        if (clockEl) clockEl.textContent = now.toLocaleTimeString('pt-PT');
-        if (dateEl) dateEl.textContent = now.toLocaleDateString('pt-PT');
-    }
-    setInterval(updateClock, 1000);
-    updateClock();
-
-    // 3. Status Badge UI Modifier
-    function setConnectionStatus(isConnected) {
-        const badge = document.getElementById('statusBadge');
-        const dot = document.getElementById('statusDot');
-        const text = document.getElementById('statusText');
-
-        if (!badge || !dot || !text) return;
-
-        if (isConnected) {
-            badge.className = "flex items-center gap-1.5 sm:gap-2 bg-emerald-100 text-emerald-700 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-semibold transition-all";
-            dot.className = "w-2 h-2 bg-emerald-500 rounded-full animate-pulse";
-            text.textContent = "Konetadu";
-        } else {
-            badge.className = "flex items-center gap-1.5 sm:gap-2 bg-red-100 text-red-600 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-semibold transition-all";
-            dot.className = "w-2 h-2 bg-red-500 rounded-full animate-pulse";
-            text.textContent = "Deskonetadu";
-        }
-    }
-
-    // 4. Detetór Status Koneksaun Realtime
-    const connectedRef = ref(database, ".info/connected");
-    onValue(connectedRef, (snap) => {
-        if (snap.val() === true) {
-            setConnectionStatus(true);
-        } else {
-            setConnectionStatus(true);
-        }
-    }, () => {
-        setConnectionStatus(true);
-    });
-
-    // 5. Notifikasaun Dropdown Toggle
-    const btnNotification = document.getElementById('btnNotification');
-    const notifDropdown = document.getElementById('notifDropdown');
-
-    if (btnNotification && notifDropdown) {
-        btnNotification.addEventListener('click', (e) => {
-            e.stopPropagation();
-            notifDropdown.classList.toggle('hidden');
-        });
-
-        document.addEventListener('click', (e) => {
-            if (!notifDropdown.contains(e.target) && !btnNotification.contains(e.target)) {
-                notifDropdown.classList.add('hidden');
-            }
-        });
-    }
-
-    // 6. Responsive Sidebar Toggle
-    const sidebar = document.getElementById('sidebar');
-    const toggleBtn = document.getElementById('toggleSidebar');
-    const closeBtnMobile = document.getElementById('closeSidebarMobile');
-    const overlay = document.getElementById('sidebarOverlay');
-
-    function toggleSidebarState() {
-        const isMobile = window.innerWidth < 768;
-
-        if (isMobile) {
-            if (sidebar.classList.contains('-translate-x-full')) {
-                sidebar.classList.remove('-translate-x-full');
-                overlay.classList.remove('hidden');
-            } else {
-                sidebar.classList.add('-translate-x-full');
-                overlay.classList.add('hidden');
-            }
-        } else {
-            if (sidebar.classList.contains('md:w-0')) {
-                sidebar.classList.remove('md:w-0', 'md:p-0', 'overflow-hidden');
-                sidebar.classList.add('w-64', 'p-4');
-            } else {
-                sidebar.classList.remove('w-64', 'p-4');
-                sidebar.classList.add('md:w-0', 'md:p-0', 'overflow-hidden');
-            }
-        }
-    }
-
-    if (toggleBtn) toggleBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleSidebarState(); });
-    if (closeBtnMobile) closeBtnMobile.addEventListener('click', () => { sidebar.classList.add('-translate-x-full'); overlay.classList.add('hidden'); });
-    if (overlay) overlay.addEventListener('click', () => { sidebar.classList.add('-translate-x-full'); overlay.classList.add('hidden'); });
-});import { firebaseConfig } from "./config.js";
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
+// Inisia Firebase App no Auth
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-// 1. Redireksiona Otomátiku se Login Tiha Ona
+// 1. Dudu diretu ba Dashboard se panteo login ativu tiha ona
 onAuthStateChanged(auth, (user) => {
     if (user) {
         window.location.assign("index.html");
     }
 });
 
-// 2. Kódigu Form Login ho Mensagem Error Loloos
+// 2. Event Listener ba Form Login
 document.addEventListener('DOMContentLoaded', () => {
-    const loginForm = document.querySelector('form');
-    const emailInput = document.querySelector('input[type="email"]');
-    const passwordInput = document.querySelector('input[type="password"]');
-    const submitBtn = document.querySelector('button[type="submit"]');
+    const loginForm = document.getElementById('loginForm');
+    const emailInput = document.getElementById('loginEmail');
+    const passwordInput = document.getElementById('loginPassword');
+    const submitBtn = document.getElementById('btnLoginSubmit');
     const errorAlert = document.getElementById('errorAlert');
     const errorMessage = document.getElementById('errorMessage');
 
@@ -154,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const email = emailInput ? emailInput.value.trim() : "";
             const password = passwordInput ? passwordInput.value.trim() : "";
 
-            // Subar fali alert error se iha
+            // Subar alert error se iha tiha ona
             if (errorAlert) errorAlert.classList.add('hidden');
 
             if (!email || !password) {
@@ -162,17 +37,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // Troka textu botaun ba loading
+            // Troka textu botaun no fo efeitu visual
             if (submitBtn) {
                 submitBtn.disabled = true;
-                submitBtn.innerText = "Prosesa hela...";
+                submitBtn.innerHTML = `<span>Prosesa hela...</span><i class="fa-solid fa-spinner animate-spin text-xs"></i>`;
             }
 
             try {
-                // Tentativa Login
+                // Tentativa autentikasaun
                 await signInWithEmailAndPassword(auth, email, password);
                 
-                // Se susesu, lori diretu ba Dashboard
+                // Lori ba Dashboard
                 window.location.assign("index.html");
 
             } catch (error) {
@@ -181,15 +56,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Fila botaun ba orijinál
                 if (submitBtn) {
                     submitBtn.disabled = false;
-                    submitBtn.innerText = "Entra";
+                    submitBtn.innerHTML = `<span>Entra</span><i class="fa-solid fa-right-to-bracket text-xs"></i>`;
                 }
 
-                // Hamosu mensagem spesífiku ba utilizadór
+                // Hamosu mensagem error espesífiku iha Alert Box
                 if (error.code === 'auth/invalid-credential' || 
                     error.code === 'auth/user-not-found' || 
                     error.code === 'auth/wrong-password' ||
                     error.code === 'auth/invalid-email') {
-                    showError("Email ka Password sala! Favor verifika no koko fali.");
+                    showError("Email ka Password sala! Favor verifika fali.");
                 } else if (error.code === 'auth/too-many-requests') {
                     showError("Tentativa barak liu! Hein minutu balun no koko fali.");
                 } else {
@@ -199,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Funsaun Auxiliár atu hamosu Mensagem Erru iha UI
+    // Funsaun auxiliár atu hatudu Error Alert Box
     function showError(msg) {
         if (errorAlert && errorMessage) {
             errorMessage.textContent = msg;
