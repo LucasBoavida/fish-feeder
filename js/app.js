@@ -2,27 +2,26 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebas
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-// Configurasaun loloos husi Firebase Console
+// Hatama firebaseConfig foun ne'ebé ita foin kria
 const firebaseConfig = {
-      apiKey: "AIzaSySySyFktnxXlR0P3EnBMf7p1DEwdSHb8",
-      authDomain: "fish-feeder-db.firebaseapp.com",
-      database URL: "https://fish-feeder-db-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "fish-feeder-db",
-      storageBucket: "fish-feeder-db.firebasestorage.app",
-      messagingSenderId: "498255146529",
-      appId: "1:498255146529:web:1cfc310a6461e348441bd60",
-      measurementId: "G-32L08HNN52"
+    apiKey: "HATAMA_API_KEY_FOUN_IHA_NE'E",
+    authDomain: "fish-feeder-db.firebaseapp.com",
+    databaseURL: "https://fish-feeder-db-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "fish-feeder-db",
+    storageBucket: "fish-feeder-db.firebasestorage.app",
+    messagingSenderId: "498255146529",
+    appId: "HATAMA_APP_ID_FOUN_IHA_NE'E"
 };
 
-// Inisia Firebase App
+// Inisia Firebase App, Auth no Realtime Database
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 const auth = getAuth(app);
 
-// Proteje Sesaun (Seidauk login -> haruka ba login.html)
+// Proteje Sesaun (Se seidauk login -> redireksiona ba login.html)
 onAuthStateChanged(auth, (user) => {
     if (!user) {
-        window.location.href = "login.html";
+        window.location.assign("login.html");
     } else {
         const userEmailNav = document.getElementById('userEmailNav');
         if (userEmailNav && user.email) {
@@ -39,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btnLogout.addEventListener('click', async () => {
             if (confirm("Ita hakarak sai husi sistema Dashboard?")) {
                 await signOut(auth);
-                window.location.href = "login.html";
+                window.location.assign("login.html");
             }
         });
     }
@@ -56,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setInterval(updateClock, 1000);
     updateClock();
 
-    // 3. Status Badge UI Modifier Function
+    // 3. Status Badge UI Modifier
     function setConnectionStatus(isConnected) {
         const badge = document.getElementById('statusBadge');
         const dot = document.getElementById('statusDot');
@@ -75,17 +74,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 4. Detetór Status Koneksaun Realtime (Hybrid Listener)
+    // 4. Detetór Status Koneksaun Realtime
     const connectedRef = ref(database, ".info/connected");
     onValue(connectedRef, (snap) => {
         if (snap.val() === true) {
             setConnectionStatus(true);
         } else {
-            // Se web temporáriu la lee .info/connected, verifika fila-fali foti path data loloos
             setConnectionStatus(true);
         }
     }, () => {
-        // Fallback auto connect se reglas limitadas
         setConnectionStatus(true);
     });
 
