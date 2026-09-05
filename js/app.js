@@ -3,18 +3,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebas
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-// Hatama firebaseConfig foun ne'ebé ita foin kria
-const firebaseConfig = {
-      apiKey: "AIzaSySySyFktnxXlR0P3EnBMf7p1DEwdSHb8",
-      authDomain: "fish-feeder-db.firebaseapp.com",
-      database URL: "https://fish-feeder-db-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "fish-feeder-db",
-      storageBucket: "fish-feeder-db.firebasestorage.app",
-      messagingSenderId: "498255146529",
-      appId: "1:498255146529:web:1cfc310a6461e348441bd60",
-      measurementId: "G-32L08HNN52"
-};
-
 // Inisia Firebase App, Auth no Realtime Database
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
