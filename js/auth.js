@@ -3,7 +3,7 @@ import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https:/
 
 // Configurasaun Firebase
 const firebaseConfig = {
-    apiKey: "AIzaSyAypSFktnxRFXlR0P3EnBMf7p1DEwdSHb8",
+    apiKey: "AIzaSySySyFktnxXlR0P3EnBMf7p1DEwdSHb8",
     authDomain: "fish-feeder-db.firebaseapp.com",
     databaseURL: "https://fish-feeder-db-default-rtdb.asia-southeast1.firebasedatabase.app",
     projectId: "fish-feeder-db",
